@@ -1,46 +1,67 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle, XCircle } from "lucide-react";
+import { Search, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock данные для демонстрации
-const mockData = [
-  {
-    id: 1,
-    title: "Звонок клиента по техподдержке",
-    summary_short: "Клиент звонил с проблемой подключения интернета",
-    summary_full: "Клиент обратился с жалобой на нестабильное подключение к интернету. Проблема была диагностирована и решена путем перезагрузки маршрутизатора.",
-    created_at: "2024-01-15T14:30:00Z",
-    goal_achieved: true,
-    steno: "14:30 - Клиент: Здравствуйте, у меня проблемы с интернетом...\n14:31 - Оператор: Добро пожаловать! Я помогу вам решить проблему..."
-  },
-  {
-    id: 2,
-    title: "Консультация по тарифам",
-    summary_short: "Клиент интересовался новыми тарифными планами",
-    summary_full: "Потенциальный клиент звонил для получения информации о доступных тарифных планах. Была предоставлена подробная консультация по всем возможным опциям.",
-    created_at: "2024-01-15T16:45:00Z",
-    goal_achieved: false,
-    steno: "16:45 - Клиент: Расскажите пожалуйста о ваших тарифах...\n16:46 - Оператор: Конечно! У нас есть несколько вариантов..."
-  },
-  {
-    id: 3,
-    title: "Жалоба на качество связи",
-    summary_short: "Клиент пожаловался на плохое качество мобильной связи",
-    summary_full: "Клиент выразил недовольство качеством мобильной связи в определенном районе города. Заявка передана в технический отдел для проверки базовых станций.",
-    created_at: "2024-01-16T09:15:00Z",
-    goal_achieved: true,
-    steno: "09:15 - Клиент: У меня очень плохая связь дома...\n09:16 - Оператор: Понимаю вашу проблему, давайте разберемся..."
-  }
-];
+interface Transcription {
+  id: string;
+  title: string;
+  summary_short: string;
+  summary_full: string;
+  created_at: string;
+  goal_achieved: boolean;
+  steno: string;
+  audio_id?: string;
+  source?: string;
+}
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<Transcription | null>(null);
+  const [transcriptions, setTranscriptions] = useState<Transcription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   
-  const formatDate = (dateString) => {
+  useEffect(() => {
+    fetchTranscriptions();
+  }, []);
+
+  const fetchTranscriptions = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('transcriptions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить транскрипции",
+          variant: "destructive",
+        });
+        console.error('Error fetching transcriptions:', error);
+        return;
+      }
+      
+      setTranscriptions(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при загрузке данных",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -50,7 +71,7 @@ const Index = () => {
     return `${day}.${month}.${year} ${hours}:${minutes}`;
   };
 
-  const filteredData = mockData.filter(item =>
+  const filteredData = transcriptions.filter(item =>
     item.summary_full.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -73,9 +94,17 @@ const Index = () => {
           />
         </div>
 
-        {/* Карточки */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map((item) => (
+        {/* Состояние загрузки */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Загрузка транскрипций...</span>
+          </div>
+        ) : (
+          <>
+            {/* Карточки */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredData.map((item) => (
             <Card 
               key={item.id} 
               className="cursor-pointer hover:shadow-md transition-shadow"
@@ -96,15 +125,22 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm">{item.summary_short}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+            </div>
 
-        {filteredData.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">По вашему запросу ничего не найдено</p>
-          </div>
+            {filteredData.length === 0 && !loading && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  {transcriptions.length === 0 
+                    ? "Нет транскрипций для отображения" 
+                    : "По вашему запросу ничего не найдено"
+                  }
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Модальное окно */}
