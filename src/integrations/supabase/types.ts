@@ -301,6 +301,45 @@ export type Database = {
           },
         ]
       }
+      transcriptions: {
+        Row: {
+          audio_id: string | null
+          created_at: string
+          goal_achieved: boolean
+          id: string
+          source: string | null
+          steno: string
+          summary_full: string
+          summary_short: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_id?: string | null
+          created_at?: string
+          goal_achieved: boolean
+          id?: string
+          source?: string | null
+          steno: string
+          summary_full: string
+          summary_short: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_id?: string | null
+          created_at?: string
+          goal_achieved?: boolean
+          id?: string
+          source?: string | null
+          steno?: string
+          summary_full?: string
+          summary_short?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
