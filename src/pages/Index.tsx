@@ -88,12 +88,25 @@ const Index = () => {
   const renderStarRating = (score: number | null, maxStars: number = 10) => {
     if (score === null) return <span className="text-muted-foreground">Не оценено</span>;
     
-    // Определяем цвет звездочек в зависимости от оценки
-    let starColor = "text-destructive"; // красный для оценки < 5
-    if (score >= 8) {
-      starColor = "text-success"; // зеленый для оценки >= 8
-    } else if (score >= 5) {
-      starColor = "text-warning"; // желтый для оценки >= 5
+    // Определяем цвет звездочек в зависимости от оценки и типа шкалы
+    let starColor = "text-destructive"; // красный по умолчанию
+    
+    if (maxStars === 5) {
+      // Логика для 5-звездочных шкал (полнота ответа и активное слушание)
+      if (score === 5) {
+        starColor = "text-success"; // зеленый для 5
+      } else if (score === 4) {
+        starColor = "text-warning"; // желтый для 4
+      }
+      // 0-3 остаются красными
+    } else {
+      // Логика для 10-звездочных шкал (общая оценка)
+      if (score >= 8) {
+        starColor = "text-success"; // зеленый для оценки >= 8
+      } else if (score >= 5) {
+        starColor = "text-warning"; // желтый для оценки >= 5
+      }
+      // < 5 остаются красными
     }
     
     return (
