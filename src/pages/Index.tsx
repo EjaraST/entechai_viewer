@@ -87,13 +87,22 @@ const Index = () => {
 
   const renderStarRating = (score: number | null, maxStars: number = 10) => {
     if (score === null) return <span className="text-muted-foreground">Не оценено</span>;
+    
+    // Определяем цвет звездочек в зависимости от оценки
+    let starColor = "text-destructive"; // красный для оценки < 5
+    if (score >= 8) {
+      starColor = "text-success"; // зеленый для оценки >= 8
+    } else if (score >= 5) {
+      starColor = "text-warning"; // желтый для оценки >= 5
+    }
+    
     return (
       <div className="flex items-center gap-1">
         {Array.from({ length: maxStars }, (_, i) => (
           <Star
             key={i}
             className={`h-4 w-4 ${
-              i < score ? "fill-warning text-warning" : "text-muted-foreground"
+              i < score ? `fill-current ${starColor}` : "text-muted-foreground"
             }`}
           />
         ))}
