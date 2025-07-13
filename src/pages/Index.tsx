@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -291,16 +291,16 @@ const Index = () => {
         )}
       </div>
 
-      {/* Модальное окно */}
-      <Dialog open={!!selectedItem} onOpenChange={() => {
+      {/* Слайд-панель */}
+      <Sheet open={!!selectedItem} onOpenChange={() => {
         setSelectedItem(null);
         setTranscriptExpanded(false);
       }}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:w-[600px] lg:w-[800px] overflow-y-auto">
           {selectedItem && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
                   {selectedItem.call_goal || "Анализ звонка"}
                   {selectedItem.goal_achieved ? (
                     <Badge className="bg-success/10 text-success border-success/20">
@@ -313,15 +313,15 @@ const Index = () => {
                       Цель не достигнута
                     </Badge>
                   )}
-                </DialogTitle>
-              </DialogHeader>
+                </SheetTitle>
+              </SheetHeader>
               
-              <div className="space-y-6">
+              <div className="space-y-6 mt-6">
                 {/* Оценки */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg border-b pb-2">Оценки</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <h4 className="font-medium mb-2">Общая оценка</h4>
                       {renderStarRating(selectedItem.overall_score)}
@@ -343,7 +343,7 @@ const Index = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg border-b pb-2">Коммуникация</h3>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       {selectedItem.greeting_correct ? <CheckCircle className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
                       <span className="text-sm">Приветствие</span>
@@ -410,7 +410,7 @@ const Index = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg border-b pb-2">Оценка оператора</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     {selectedItem.operator_strength && (
                       <div>
                         <h4 className="font-medium mb-2 text-success">Сильные стороны</h4>
@@ -456,8 +456,8 @@ const Index = () => {
               </div>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
