@@ -113,6 +113,84 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_calls_analysis: {
+        Row: {
+          audio_url: string | null
+          call_date: string | null
+          client_tonality: string | null
+          construction_count: number | null
+          date_created: string | null
+          date_updated: string | null
+          desired_installation_time: string | null
+          emotion_score: number | null
+          id: string
+          is_measuring_appointment: boolean | null
+          lead_temperature: string | null
+          manager_name: string | null
+          measure_score: number | null
+          next_contact_date: string | null
+          next_contact_method: string | null
+          object_score: number | null
+          object_type: string | null
+          special_requirements: string | null
+          summary_text: string | null
+          timing_score: number | null
+          total_score: number | null
+          transcript: string | null
+          volume_score: number | null
+        }
+        Insert: {
+          audio_url?: string | null
+          call_date?: string | null
+          client_tonality?: string | null
+          construction_count?: number | null
+          date_created?: string | null
+          date_updated?: string | null
+          desired_installation_time?: string | null
+          emotion_score?: number | null
+          id?: string
+          is_measuring_appointment?: boolean | null
+          lead_temperature?: string | null
+          manager_name?: string | null
+          measure_score?: number | null
+          next_contact_date?: string | null
+          next_contact_method?: string | null
+          object_score?: number | null
+          object_type?: string | null
+          special_requirements?: string | null
+          summary_text?: string | null
+          timing_score?: number | null
+          total_score?: number | null
+          transcript?: string | null
+          volume_score?: number | null
+        }
+        Update: {
+          audio_url?: string | null
+          call_date?: string | null
+          client_tonality?: string | null
+          construction_count?: number | null
+          date_created?: string | null
+          date_updated?: string | null
+          desired_installation_time?: string | null
+          emotion_score?: number | null
+          id?: string
+          is_measuring_appointment?: boolean | null
+          lead_temperature?: string | null
+          manager_name?: string | null
+          measure_score?: number | null
+          next_contact_date?: string | null
+          next_contact_method?: string | null
+          object_score?: number | null
+          object_type?: string | null
+          special_requirements?: string | null
+          summary_text?: string | null
+          timing_score?: number | null
+          total_score?: number | null
+          transcript?: string | null
+          volume_score?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
