@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CallAnalysis = Tables<'call_analysis'>;
-type SalesCallAnalysis = Tables<'sales_calls_analysis'>;
+type SalesCallAnalysis = any; // Используем any для sales_calls_analysis до обновления типов
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("call-center");

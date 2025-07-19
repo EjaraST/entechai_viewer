@@ -185,6 +185,78 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_calls_analysis: {
+        Row: {
+          call_duration_seconds: number | null
+          client_emotion: string | null
+          client_requirements: string | null
+          client_warmth: string | null
+          construction_count: string | null
+          construction_score: number | null
+          created_at: string | null
+          emotion_score: number | null
+          file_id: string | null
+          id: string
+          measurement_scheduled: boolean | null
+          measurement_score: number | null
+          next_contact_date: string | null
+          next_contact_method: string | null
+          object_score: number | null
+          object_type: string | null
+          telegram_chat_id: number | null
+          timing_score: number | null
+          total_score: number | null
+          transcript_text: string | null
+          window_needed_when: string | null
+        }
+        Insert: {
+          call_duration_seconds?: number | null
+          client_emotion?: string | null
+          client_requirements?: string | null
+          client_warmth?: string | null
+          construction_count?: string | null
+          construction_score?: number | null
+          created_at?: string | null
+          emotion_score?: number | null
+          file_id?: string | null
+          id?: string
+          measurement_scheduled?: boolean | null
+          measurement_score?: number | null
+          next_contact_date?: string | null
+          next_contact_method?: string | null
+          object_score?: number | null
+          object_type?: string | null
+          telegram_chat_id?: number | null
+          timing_score?: number | null
+          total_score?: number | null
+          transcript_text?: string | null
+          window_needed_when?: string | null
+        }
+        Update: {
+          call_duration_seconds?: number | null
+          client_emotion?: string | null
+          client_requirements?: string | null
+          client_warmth?: string | null
+          construction_count?: string | null
+          construction_score?: number | null
+          created_at?: string | null
+          emotion_score?: number | null
+          file_id?: string | null
+          id?: string
+          measurement_scheduled?: boolean | null
+          measurement_score?: number | null
+          next_contact_date?: string | null
+          next_contact_method?: string | null
+          object_score?: number | null
+          object_type?: string | null
+          telegram_chat_id?: number | null
+          timing_score?: number | null
+          total_score?: number | null
+          transcript_text?: string | null
+          window_needed_when?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
