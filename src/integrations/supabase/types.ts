@@ -113,81 +113,75 @@ export type Database = {
         }
         Relationships: []
       }
-      sales_calls_analysis: {
+      sales_call_analysis: {
         Row: {
-          audio_url: string | null
-          call_date: string | null
-          client_tonality: string | null
-          construction_count: number | null
-          date_created: string | null
-          date_updated: string | null
-          desired_installation_time: string | null
+          call_duration_seconds: number | null
+          client_emotion: string | null
+          client_requirements: string | null
+          client_warmth: string | null
+          construction_count: string | null
+          construction_score: number | null
+          created_at: string | null
           emotion_score: number | null
           id: string
-          is_measuring_appointment: boolean | null
-          lead_temperature: string | null
-          manager_name: string | null
-          measure_score: number | null
+          measurement_scheduled: boolean | null
+          measurement_score: number | null
           next_contact_date: string | null
           next_contact_method: string | null
           object_score: number | null
           object_type: string | null
-          special_requirements: string | null
-          summary_text: string | null
+          telegram_chat_id: number | null
+          telegram_file_id: string
           timing_score: number | null
           total_score: number | null
-          transcript: string | null
-          volume_score: number | null
+          transcript_text: string | null
+          window_needed_when: string | null
         }
         Insert: {
-          audio_url?: string | null
-          call_date?: string | null
-          client_tonality?: string | null
-          construction_count?: number | null
-          date_created?: string | null
-          date_updated?: string | null
-          desired_installation_time?: string | null
+          call_duration_seconds?: number | null
+          client_emotion?: string | null
+          client_requirements?: string | null
+          client_warmth?: string | null
+          construction_count?: string | null
+          construction_score?: number | null
+          created_at?: string | null
           emotion_score?: number | null
           id?: string
-          is_measuring_appointment?: boolean | null
-          lead_temperature?: string | null
-          manager_name?: string | null
-          measure_score?: number | null
+          measurement_scheduled?: boolean | null
+          measurement_score?: number | null
           next_contact_date?: string | null
           next_contact_method?: string | null
           object_score?: number | null
           object_type?: string | null
-          special_requirements?: string | null
-          summary_text?: string | null
+          telegram_chat_id?: number | null
+          telegram_file_id: string
           timing_score?: number | null
           total_score?: number | null
-          transcript?: string | null
-          volume_score?: number | null
+          transcript_text?: string | null
+          window_needed_when?: string | null
         }
         Update: {
-          audio_url?: string | null
-          call_date?: string | null
-          client_tonality?: string | null
-          construction_count?: number | null
-          date_created?: string | null
-          date_updated?: string | null
-          desired_installation_time?: string | null
+          call_duration_seconds?: number | null
+          client_emotion?: string | null
+          client_requirements?: string | null
+          client_warmth?: string | null
+          construction_count?: string | null
+          construction_score?: number | null
+          created_at?: string | null
           emotion_score?: number | null
           id?: string
-          is_measuring_appointment?: boolean | null
-          lead_temperature?: string | null
-          manager_name?: string | null
-          measure_score?: number | null
+          measurement_scheduled?: boolean | null
+          measurement_score?: number | null
           next_contact_date?: string | null
           next_contact_method?: string | null
           object_score?: number | null
           object_type?: string | null
-          special_requirements?: string | null
-          summary_text?: string | null
+          telegram_chat_id?: number | null
+          telegram_file_id?: string
           timing_score?: number | null
           total_score?: number | null
-          transcript?: string | null
-          volume_score?: number | null
+          transcript_text?: string | null
+          window_needed_when?: string | null
         }
         Relationships: []
       }
