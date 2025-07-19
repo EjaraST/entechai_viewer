@@ -95,7 +95,7 @@ const Index = () => {
     try {
       setSalesLoading(true);
       const { data, error } = await supabase
-        .from('sales_call_analysis')
+        .from('sales_calls_analysis')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -196,6 +196,33 @@ const Index = () => {
           />
         ))}
         <span className="ml-2 text-sm text-muted-foreground">{score}/{maxStars}</span>
+      </div>
+    );
+  };
+
+  const renderStarRatingFrom100 = (score: number | null) => {
+    if (score === null) return <span className="text-muted-foreground">Не оценено</span>;
+    
+    const stars = Math.round(score / 20); // Convert 0-100 to 0-5 stars
+    let starColor = "text-destructive";
+    
+    if (score >= 80) {
+      starColor = "text-success";
+    } else if (score >= 60) {
+      starColor = "text-warning";
+    }
+    
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${
+              i < stars ? `fill-current ${starColor}` : "text-muted-foreground"
+            }`}
+          />
+        ))}
+        <span className="ml-2 text-sm text-muted-foreground">{score}/100</span>
       </div>
     );
   };
@@ -385,7 +412,7 @@ const Index = () => {
     try {
       setSalesDeleteLoading(true);
       const { error } = await supabase
-        .from('sales_call_analysis')
+        .from('sales_calls_analysis')
         .delete()
         .eq('id', id);
 
@@ -420,7 +447,7 @@ const Index = () => {
     try {
       setSalesDeleteLoading(true);
       const { error } = await supabase
-        .from('sales_call_analysis')
+        .from('sales_calls_analysis')
         .delete()
         .in('id', ids);
 
@@ -456,7 +483,7 @@ const Index = () => {
     try {
       setSalesUpdateLoading(true);
       const { error } = await supabase
-        .from('sales_call_analysis')
+        .from('sales_calls_analysis')
         .update(updates)
         .eq('id', id);
 
@@ -510,29 +537,6 @@ const Index = () => {
     }
   };
 
-  const toggleSelectionMode = () => {
-    setSelectionMode(!selectionMode);
-    setSelectedItems(new Set());
-  };
-
-  const startEdit = () => {
-    if (selectedItem) {
-      setEditedItem({ ...selectedItem });
-      setEditMode(true);
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditMode(false);
-    setEditedItem(null);
-  };
-
-  const saveEdit = () => {
-    if (editedItem && selectedItem) {
-      updateItem(selectedItem.id, editedItem);
-    }
-  };
-
   // Selection helpers for Sales
   const handleSelectSalesItem = (id: string) => {
     const newSelected = new Set(salesSelectedItems);
@@ -552,900 +556,959 @@ const Index = () => {
     }
   };
 
-  const toggleSalesSelectionMode = () => {
-    setSalesSelectionMode(!salesSelectionMode);
-    setSalesSelectedItems(new Set());
-  };
-
-  const startSalesEdit = () => {
-    if (selectedSalesItem) {
-      setSalesEditedItem({ ...selectedSalesItem });
-      setSalesEditMode(true);
-    }
-  };
-
-  const cancelSalesEdit = () => {
-    setSalesEditMode(false);
-    setSalesEditedItem(null);
-  };
-
-  const saveSalesEdit = () => {
-    if (salesEditedItem && selectedSalesItem) {
-      updateSalesItem(selectedSalesItem.id, salesEditedItem);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Фиксированная шапка */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-light mb-2">EntechAI: Анализ звонков</h1>
-            <p className="text-muted-foreground font-light">Просмотр и анализ качества телефонных разговоров</p>
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-4xl font-bold text-primary">Анализ звонков</h1>
+        <p className="text-muted-foreground">
+          Комплексный анализ качества обслуживания клиентов
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="call-center">Анализ звонков колл-центра</TabsTrigger>
+          <TabsTrigger value="sales">Анализ звонков отдела продаж</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="call-center" className="space-y-6">
+          {/* Call Center Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Всего анализов</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.total}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Успешные</CardTitle>
+                <CheckCircle className="h-4 w-4 text-success" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">{metrics.successful}</div>
+                <p className="text-xs text-muted-foreground">
+                  {metrics.total > 0 ? Math.round((metrics.successful / metrics.total) * 100) : 0}% от общего числа
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Неуспешные</CardTitle>
+                <XCircle className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">{metrics.failed}</div>
+                <p className="text-xs text-muted-foreground">
+                  {metrics.total > 0 ? Math.round((metrics.failed / metrics.total) * 100) : 0}% от общего числа
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="call-center">Анализ звонков колл-центра</TabsTrigger>
-              <TabsTrigger value="sales">Анализ звонков отдела продаж</TabsTrigger>
-            </TabsList>
+          {/* Call Center Controls */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Поиск по цели звонка, заключению или транскрипции..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
             
-            <TabsContent value="call-center" className="mt-6">
-              {/* Call Center Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    activeFilter === 'all' ? 'ring-2 ring-primary/20 bg-primary/5' : ''
-                  }`}
-                  onClick={() => setActiveFilter('all')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">📊 Всего</p>
-                        <p className="text-2xl font-bold">{metrics.total}</p>
-                      </div>
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    activeFilter === 'success' ? 'ring-2 ring-success/20 bg-success/5' : ''
-                  }`}
-                  onClick={() => setActiveFilter('success')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">✅ Успешные</p>
-                        <p className="text-2xl font-bold text-success">{metrics.successful}</p>
-                      </div>
-                      <Target className="h-8 w-8 text-success" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    activeFilter === 'failed' ? 'ring-2 ring-destructive/20 bg-destructive/5' : ''
-                  }`}
-                  onClick={() => setActiveFilter('failed')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">❌ Неуспешные</p>
-                        <p className="text-2xl font-bold text-destructive">{metrics.failed}</p>
-                      </div>
-                      <TrendingDown className="h-8 w-8 text-destructive" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Call Center Search and Actions */}
-              <div className="flex gap-4 items-center mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Поиск по цели звонка, выводам или транскрипции..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-0 shadow-sm"
-                  />
-                </div>
-                
+            <div className="flex gap-2">
+              <Select value={activeFilter} onValueChange={(value: 'all' | 'success' | 'failed') => setActiveFilter(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все анализы</SelectItem>
+                  <SelectItem value="success">Успешные</SelectItem>
+                  <SelectItem value="failed">Неуспешные</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {!selectionMode ? (
                 <Button
-                  variant={selectionMode ? "default" : "outline"}
-                  onClick={toggleSelectionMode}
-                  className="flex items-center gap-2"
+                  variant="outline"
+                  onClick={() => setSelectionMode(true)}
+                  disabled={filteredData.length === 0}
                 >
-                  <Checkbox checked={selectionMode} onChange={() => {}} />
-                  {selectionMode ? "Отменить выбор" : "Выбрать"}
+                  Выбрать
                 </Button>
-                
-                {selectionMode && (
+              ) : (
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={handleSelectAll}
-                    className="flex items-center gap-2"
+                    size="sm"
                   >
-                    {selectedItems.size === filteredData.length ? "Отменить все" : "Выбрать все"}
+                    {selectedItems.size === filteredData.length ? "Снять всё" : "Выбрать всё"}
                   </Button>
-                )}
-              </div>
-
-              {/* Call Center Content */}
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">Загрузка анализов звонков...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredData.map((item) => (
-                      <Card
-                        key={item.id}
-                        className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                          selectedItems.has(item.id) ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-                        }`}
-                        onClick={(e) => {
-                          if (selectionMode) {
-                            e.stopPropagation();
-                            handleSelectItem(item.id);
-                          } else {
-                            setSelectedItem(item);
-                          }
-                        }}
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              {selectionMode && (
-                                <Checkbox
-                                  checked={selectedItems.has(item.id)}
-                                  onCheckedChange={() => handleSelectItem(item.id)}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              )}
-                              <CardTitle className="text-lg font-medium line-clamp-2">
-                                {item.call_goal || "Цель не указана"}
-                              </CardTitle>
-                            </div>
-                            {item.goal_achieved ? (
-                              <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
-                            ) : (
-                              <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            <span>{item.conversation_duration_total || "Не указано"}</span>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Общая оценка</p>
-                            {renderStarRating(item.overall_score)}
-                          </div>
-
-                          {item.operator_tonality && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Тональность</p>
-                              <Badge className={getTonalityColor(item.operator_tonality)}>
-                                {item.operator_tonality}
-                              </Badge>
-                            </div>
-                          )}
-
-                          {item.client_nps_category && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Категория клиента</p>
-                              <Badge className={getNpsColor(item.client_nps_category)}>
-                                {item.client_nps_category}
-                              </Badge>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {filteredData.length === 0 && !loading && (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground font-light">
-                        {analyses.length === 0
-                          ? "Нет анализов для отображения"
-                          : "По вашему запросу ничего не найдено"}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="sales" className="mt-6">
-              {/* Sales Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    salesActiveFilter === 'all' ? 'ring-2 ring-primary/20 bg-primary/5' : ''
-                  }`}
-                  onClick={() => setSalesActiveFilter('all')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">📊 Всего лидов</p>
-                        <p className="text-2xl font-bold">{salesMetrics.total}</p>
-                      </div>
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    salesActiveFilter === 'hot' ? 'ring-2 ring-red-500/20 bg-red-500/5' : ''
-                  }`}
-                  onClick={() => setSalesActiveFilter('hot')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">🔥 Горячие лиды</p>
-                        <p className="text-2xl font-bold text-red-500">{salesMetrics.hot}</p>
-                      </div>
-                      <span className="text-2xl">🔥</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card 
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                    salesActiveFilter === 'measured' ? 'ring-2 ring-success/20 bg-success/5' : ''
-                  }`}
-                  onClick={() => setSalesActiveFilter('measured')}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">✅ Записались на замер</p>
-                        <p className="text-2xl font-bold text-success">{salesMetrics.measured}</p>
-                      </div>
-                      <span className="text-2xl">✅</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sales Search and Actions */}
-              <div className="flex gap-4 items-center mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Поиск по типу объекта, температуре клиента, требованиям..."
-                    value={salesSearchTerm}
-                    onChange={(e) => setSalesSearchTerm(e.target.value)}
-                    className="pl-10 border-0 shadow-sm"
-                  />
-                </div>
-                
-                <Button
-                  variant={salesSelectionMode ? "default" : "outline"}
-                  onClick={toggleSalesSelectionMode}
-                  className="flex items-center gap-2"
-                >
-                  <Checkbox checked={salesSelectionMode} onChange={() => {}} />
-                  {salesSelectionMode ? "Отменить выбор" : "Выбрать"}
-                </Button>
-                
-                {salesSelectionMode && (
                   <Button
                     variant="outline"
-                    onClick={handleSelectAllSales}
-                    className="flex items-center gap-2"
+                    onClick={() => {
+                      setSelectionMode(false);
+                      setSelectedItems(new Set());
+                    }}
+                    size="sm"
                   >
-                    {salesSelectedItems.size === salesFilteredData.length ? "Отменить все" : "Выбрать все"}
+                    Отмена
                   </Button>
-                )}
-              </div>
-
-              {/* Sales Content */}
-              {salesLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">Загрузка анализов продаж...</span>
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {salesFilteredData.map((item) => (
-                      <Card
-                        key={item.id}
-                        className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-0 shadow-sm ${
-                          salesSelectedItems.has(item.id) ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-                        }`}
-                        onClick={(e) => {
-                          if (salesSelectionMode) {
-                            e.stopPropagation();
-                            handleSelectSalesItem(item.id);
-                          } else {
-                            setSelectedSalesItem(item);
-                          }
-                        }}
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              {salesSelectionMode && (
-                                <Checkbox
-                                  checked={salesSelectedItems.has(item.id)}
-                                  onCheckedChange={() => handleSelectSalesItem(item.id)}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              )}
-                              <CardTitle className="text-lg font-medium line-clamp-2">
-                                {item.object_type || "Тип объекта не указан"}
-                              </CardTitle>
-                            </div>
-                            {item.measurement_scheduled ? (
+              )}
+            </div>
+          </div>
+
+          {/* Call Center Delete Button */}
+          {selectionMode && selectedItems.size > 0 && (
+            <div className="fixed bottom-6 right-6 z-50">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="rounded-full shadow-lg"
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="h-5 w-5 mr-2" />
+                    )}
+                    Удалить ({selectedItems.size})
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Вы действительно хотите удалить {selectedItems.size} выбранных анализов? 
+                      Это действие нельзя отменить.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteMultipleItems(Array.from(selectedItems))}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Удалить
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
+
+          {/* Call Center Loading */}
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Загрузка анализов...</span>
+            </div>
+          ) : filteredData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Анализы не найдены</p>
+            </div>
+          ) : (
+            /* Call Center Cards */
+            <div className="grid gap-4">
+              {filteredData.map((item) => (
+                <Card 
+                  key={item.id} 
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectionMode ? "hover:bg-muted/50" : ""
+                  } ${
+                    selectedItems.has(item.id) ? "ring-2 ring-primary bg-primary/5" : ""
+                  }`}
+                  onClick={() => {
+                    if (selectionMode) {
+                      handleSelectItem(item.id);
+                    } else {
+                      setSelectedItem(item);
+                    }
+                  }}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {selectionMode && (
+                          <Checkbox
+                            checked={selectedItems.has(item.id)}
+                            onChange={() => handleSelectItem(item.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                        
+                        <div className="flex-1">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {item.call_goal || "Цель не указана"}
+                            {item.goal_achieved ? (
                               <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
                             ) : (
                               <XCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             )}
-                          </div>
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            {formatDate(item.date_created)}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Общая оценка</p>
+                      {renderStarRating(item.overall_score)}
+                    </div>
+
+                    {item.operator_tonality && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Тональность оператора</p>
+                        <Badge className={getTonalityColor(item.operator_tonality)}>
+                          {item.operator_tonality}
+                        </Badge>
+                      </div>
+                    )}
+
+                    {item.client_nps_category && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Категория NPS</p>
+                        <Badge className={getNpsColor(item.client_nps_category)}>
+                          {item.client_nps_category}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="sales" className="space-y-6">
+          {/* Sales Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Всего лидов</CardTitle>
+                <span className="text-lg">📊</span>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{salesMetrics.total}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Горячие лиды</CardTitle>
+                <span className="text-lg">🔥</span>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-500">{salesMetrics.hot}</div>
+                <p className="text-xs text-muted-foreground">
+                  {salesMetrics.total > 0 ? Math.round((salesMetrics.hot / salesMetrics.total) * 100) : 0}% от общего числа
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Записались на замер</CardTitle>
+                <span className="text-lg">✅</span>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">{salesMetrics.measured}</div>
+                <p className="text-xs text-muted-foreground">
+                  {salesMetrics.total > 0 ? Math.round((salesMetrics.measured / salesMetrics.total) * 100) : 0}% от общего числа
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sales Controls */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Поиск по объекту, требованиям, эмоциям..."
+                value={salesSearchTerm}
+                onChange={(e) => setSalesSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Select value={salesActiveFilter} onValueChange={(value: 'all' | 'hot' | 'measured') => setSalesActiveFilter(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все лиды</SelectItem>
+                  <SelectItem value="hot">Горячие лиды</SelectItem>
+                  <SelectItem value="measured">Записались на замер</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {!salesSelectionMode ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setSalesSelectionMode(true)}
+                  disabled={salesFilteredData.length === 0}
+                >
+                  Выбрать
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleSelectAllSales}
+                    size="sm"
+                  >
+                    {salesSelectedItems.size === salesFilteredData.length ? "Снять всё" : "Выбрать всё"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSalesSelectionMode(false);
+                      setSalesSelectedItems(new Set());
+                    }}
+                    size="sm"
+                  >
+                    Отмена
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sales Delete Button */}
+          {salesSelectionMode && salesSelectedItems.size > 0 && (
+            <div className="fixed bottom-6 right-6 z-50">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="rounded-full shadow-lg"
+                    disabled={salesDeleteLoading}
+                  >
+                    {salesDeleteLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="h-5 w-5 mr-2" />
+                    )}
+                    Удалить ({salesSelectedItems.size})
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Вы действительно хотите удалить {salesSelectedItems.size} выбранных анализов продаж? 
+                      Это действие нельзя отменить.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteMultipleSalesItems(Array.from(salesSelectedItems))}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Удалить
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
+
+          {/* Sales Loading */}
+          {salesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Загрузка анализов продаж...</span>
+            </div>
+          ) : salesFilteredData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Анализы продаж не найдены</p>
+            </div>
+          ) : (
+            /* Sales Cards */
+            <div className="grid gap-4">
+              {salesFilteredData.map((item) => (
+                <Card 
+                  key={item.id} 
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    salesSelectionMode ? "hover:bg-muted/50" : ""
+                  } ${
+                    salesSelectedItems.has(item.id) ? "ring-2 ring-primary bg-primary/5" : ""
+                  }`}
+                  onClick={() => {
+                    if (salesSelectionMode) {
+                      handleSelectSalesItem(item.id);
+                    } else {
+                      setSelectedSalesItem(item);
+                    }
+                  }}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {salesSelectionMode && (
+                          <Checkbox
+                            checked={salesSelectedItems.has(item.id)}
+                            onChange={() => handleSelectSalesItem(item.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                        
+                        <div className="flex-1">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {item.object_type || "Тип объекта не указан"}
+                            {item.measurement_scheduled && (
+                              <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                            )}
+                          </CardTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="h-4 w-4" />
                             <span>{formatDuration(item.call_duration_seconds)}</span>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Общая оценка</p>
-                            {renderStarRatingFrom100(item.total_score)}
-                          </div>
-
-                          {item.client_emotion && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Эмоциональная оценка</p>
-                              <Badge className={getTonalityColor(item.client_emotion)}>
-                                {item.client_emotion}
-                              </Badge>
-                            </div>
-                          )}
-
-                          {item.client_warmth && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Температура клиента</p>
-                              <Badge className={getWarmthColor(item.client_warmth)}>
-                                {item.client_warmth}
-                              </Badge>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {salesFilteredData.length === 0 && !salesLoading && (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground font-light">
-                        {salesAnalyses.length === 0
-                          ? "Нет анализов продаж для отображения"
-                          : "По вашему запросу ничего не найдено"}
-                      </p>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Общая оценка</p>
+                      {renderStarRatingFrom100(item.total_score)}
+                    </div>
 
-      {/* Floating Action Buttons */}
-      {selectionMode && selectedItems.size > 0 && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="lg"
-                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg"
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                ) : (
-                  <Trash2 className="h-5 w-5 mr-2" />
-                )}
-                Удалить ({selectedItems.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Вы уверены, что хотите удалить {selectedItems.size} выбранных анализов? Это действие нельзя отменить.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Отмена</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteMultipleItems(Array.from(selectedItems))}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Удалить
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+                    {item.client_emotion && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Эмоциональная оценка</p>
+                        <Badge className={getTonalityColor(item.client_emotion)}>
+                          {item.client_emotion}
+                        </Badge>
+                      </div>
+                    )}
 
-      {salesSelectionMode && salesSelectedItems.size > 0 && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="lg"
-                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg"
-                disabled={salesDeleteLoading}
-              >
-                {salesDeleteLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                ) : (
-                  <Trash2 className="h-5 w-5 mr-2" />
-                )}
-                Удалить ({salesSelectedItems.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Вы уверены, что хотите удалить {salesSelectedItems.size} выбранных анализов продаж? Это действие нельзя отменить.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Отмена</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteMultipleSalesItems(Array.from(salesSelectedItems))}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Удалить
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+                    {item.client_warmth && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Категория клиента</p>
+                        <Badge className={getWarmthColor(item.client_warmth)}>
+                          {item.client_warmth}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
-      {/* Call Center Side Panel */}
-      <Sheet open={!!selectedItem} onOpenChange={() => {
-        setSelectedItem(null);
-        setTranscriptExpanded(false);
-        setEditMode(false);
-        setEditedItem(null);
-      }}>
-        <SheetContent side="right" className="w-full sm:w-[600px] lg:w-[800px] overflow-y-auto">
+      {/* Call Center Detail Sheet */}
+      <Sheet open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
           {selectedItem && (
             <>
-              <SheetHeader>
+              <SheetHeader className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <SheetTitle className="flex items-center gap-2">
-                    {editMode ? "Редактирование анализа" : selectedItem.call_goal || "Анализ звонка"}
-                    {!editMode && (selectedItem.goal_achieved ? (
-                      <Badge className="bg-success/10 text-success border-success/20">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Цель достигнута
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-destructive/10 text-destructive border-destructive/20">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Цель не достигнута
-                      </Badge>
-                    ))}
+                  <SheetTitle className="text-xl">
+                    {selectedItem.call_goal || "Анализ звонка"}
                   </SheetTitle>
-                  
-                  {!editMode && (
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={startEdit}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Редактировать
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" disabled={deleteLoading}>
-                            <Trash2 className="h-4 w-4 mr-2" />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setEditMode(true);
+                        setEditedItem({ ...selectedItem });
+                      }}
+                      disabled={editMode || updateLoading}
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Вы действительно хотите удалить этот анализ? Это действие нельзя отменить.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Отмена</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteSingleItem(selectedItem.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
                             Удалить
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Вы уверены, что хотите удалить этот анализ? Это действие нельзя отменить.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteSingleItem(selectedItem.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Удалить
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  )}
-                  
-                  {editMode && (
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={cancelEdit}>
-                        <X className="h-4 w-4 mr-2" />
-                        Отмена
-                      </Button>
-                      <Button size="sm" onClick={saveEdit} disabled={updateLoading}>
-                        {updateLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Check className="h-4 w-4 mr-2" />
-                        )}
-                        Сохранить
-                      </Button>
-                    </div>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>{formatDate(selectedItem.date_created)}</span>
+                  {selectedItem.goal_achieved ? (
+                    <Badge className="bg-success/10 text-success border-success/20">
+                      Цель достигнута
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-destructive/10 text-destructive border-destructive/20">
+                      Цель не достигнута
+                    </Badge>
                   )}
                 </div>
               </SheetHeader>
-              
-              <div className="space-y-6 mt-6">
-                {/* Call Center Edit/View Content */}
-                <div>
-                  <p className="text-muted-foreground">Содержимое панели колл-центра - сохранить существующий код</p>
+
+              {editMode ? (
+                <div className="space-y-4 mt-6">
+                  <div>
+                    <label className="text-sm font-medium">Цель звонка</label>
+                    <Textarea
+                      value={editedItem?.call_goal || ''}
+                      onChange={(e) => setEditedItem(prev => prev ? { ...prev, call_goal: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Заключение</label>
+                    <Textarea
+                      value={editedItem?.final_conclusion || ''}
+                      onChange={(e) => setEditedItem(prev => prev ? { ...prev, final_conclusion: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Общая оценка (0-10)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={editedItem?.overall_score || 0}
+                      onChange={(e) => setEditedItem(prev => prev ? { ...prev, overall_score: parseInt(e.target.value) || 0 } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        if (editedItem) {
+                          updateItem(selectedItem.id, {
+                            call_goal: editedItem.call_goal,
+                            final_conclusion: editedItem.final_conclusion,
+                            overall_score: editedItem.overall_score
+                          });
+                        }
+                      }}
+                      disabled={updateLoading}
+                      className="flex-1"
+                    >
+                      {updateLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Сохранение...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Сохранить
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditMode(false);
+                        setEditedItem(null);
+                      }}
+                      disabled={updateLoading}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Отмена
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6 mt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Общая оценка</p>
+                      {renderStarRating(selectedItem.overall_score)}
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">Активное слушание</p>
+                      {renderStarRating(selectedItem.active_listening_score)}
+                    </div>
+                  </div>
+
+                  {selectedItem.operator_tonality && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Тональность оператора</p>
+                      <Badge className={getTonalityColor(selectedItem.operator_tonality)}>
+                        {selectedItem.operator_tonality}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {selectedItem.final_conclusion && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Заключение</p>
+                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                        {selectedItem.final_conclusion}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedItem.transcript && (
+                    <Collapsible open={transcriptExpanded} onOpenChange={setTranscriptExpanded}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full flex items-center justify-between">
+                          <span>Транскрипция</span>
+                          {transcriptExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <div className="bg-muted/50 p-4 rounded text-sm max-h-60 overflow-y-auto">
+                          {selectedItem.transcript}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              )}
             </>
           )}
         </SheetContent>
       </Sheet>
 
-      {/* Sales Side Panel */}
-      <Sheet open={!!selectedSalesItem} onOpenChange={() => {
-        setSelectedSalesItem(null);
-        setSalesEditMode(false);
-        setSalesEditedItem(null);
-      }}>
-        <SheetContent side="right" className="w-full sm:w-[600px] lg:w-[800px] overflow-y-auto">
+      {/* Sales Detail Sheet */}
+      <Sheet open={!!selectedSalesItem} onOpenChange={(open) => !open && setSelectedSalesItem(null)}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
           {selectedSalesItem && (
             <>
-              <SheetHeader>
+              <SheetHeader className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <SheetTitle className="flex items-center gap-2">
-                    {salesEditMode ? "Редактирование анализа продаж" : selectedSalesItem.object_type || "Анализ продаж"}
-                    {!salesEditMode && (selectedSalesItem.measurement_scheduled ? (
-                      <Badge className="bg-success/10 text-success border-success/20">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Записался на замер
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-muted/10 text-muted-foreground border-muted/20">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Не записался
-                      </Badge>
-                    ))}
+                  <SheetTitle className="text-xl">
+                    {selectedSalesItem.object_type || "Анализ продаж"}
                   </SheetTitle>
-                  
-                  {!salesEditMode && (
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={startSalesEdit}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Редактировать
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" disabled={salesDeleteLoading}>
-                            <Trash2 className="h-4 w-4 mr-2" />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setSalesEditMode(true);
+                        setSalesEditedItem({ ...selectedSalesItem });
+                      }}
+                      disabled={salesEditMode || salesUpdateLoading}
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Вы действительно хотите удалить этот анализ продаж? Это действие нельзя отменить.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Отмена</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteSingleSalesItem(selectedSalesItem.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
                             Удалить
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Вы уверены, что хотите удалить этот анализ продаж? Это действие нельзя отменить.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteSingleSalesItem(selectedSalesItem.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Удалить
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  )}
-                  
-                  {salesEditMode && (
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={cancelSalesEdit}>
-                        <X className="h-4 w-4 mr-2" />
-                        Отмена
-                      </Button>
-                      <Button size="sm" onClick={saveSalesEdit} disabled={salesUpdateLoading}>
-                        {salesUpdateLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Check className="h-4 w-4 mr-2" />
-                        )}
-                        Сохранить
-                      </Button>
-                    </div>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>{formatDate(selectedSalesItem.created_at)}</span>
+                  <span>{formatDuration(selectedSalesItem.call_duration_seconds)}</span>
+                  {selectedSalesItem.measurement_scheduled && (
+                    <Badge className="bg-success/10 text-success border-success/20">
+                      Записался на замер
+                    </Badge>
                   )}
                 </div>
               </SheetHeader>
-              
-              <div className="space-y-6 mt-6">
-                {salesEditMode && salesEditedItem ? (
-                  /* Sales Edit Mode */
-                  <>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg border-b pb-2">Основная информация</h3>
-                      
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Тип объекта</label>
-                          <Input
-                            value={salesEditedItem.object_type || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, object_type: e.target.value})}
-                            placeholder="Введите тип объекта"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Количество конструкций</label>
-                          <Input
-                            value={salesEditedItem.construction_count || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, construction_count: e.target.value})}
-                            placeholder="Введите количество конструкций"
-                          />
-                        </div>
 
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Когда нужны окна</label>
-                          <Input
-                            value={salesEditedItem.window_needed_when || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, window_needed_when: e.target.value})}
-                            placeholder="Когда нужны окна"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={salesEditedItem.measurement_scheduled || false}
-                            onCheckedChange={(checked) => setSalesEditedItem({...salesEditedItem, measurement_scheduled: checked as boolean})}
-                          />
-                          <label className="text-sm font-medium">Записался на замер</label>
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Дата следующего контакта</label>
-                          <Input
-                            value={salesEditedItem.next_contact_date || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, next_contact_date: e.target.value})}
-                            placeholder="Дата следующего контакта"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Способ следующего контакта</label>
-                          <Input
-                            value={salesEditedItem.next_contact_method || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, next_contact_method: e.target.value})}
-                            placeholder="Способ контакта"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Требования клиента</label>
-                          <Textarea
-                            value={salesEditedItem.client_requirements || ''}
-                            onChange={(e) => setSalesEditedItem({...salesEditedItem, client_requirements: e.target.value})}
-                            placeholder="Требования клиента"
-                            rows={3}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Эмоциональная оценка</label>
-                          <Select 
-                            value={salesEditedItem.client_emotion || ''} 
-                            onValueChange={(value) => setSalesEditedItem({...salesEditedItem, client_emotion: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Выберите эмоцию" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Позитивная">Позитивная</SelectItem>
-                              <SelectItem value="Нейтральная">Нейтральная</SelectItem>
-                              <SelectItem value="Негативная">Негативная</SelectItem>
-                              <SelectItem value="Заинтересованная">Заинтересованная</SelectItem>
-                              <SelectItem value="Скептическая">Скептическая</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Температура клиента</label>
-                          <Select 
-                            value={salesEditedItem.client_warmth || ''} 
-                            onValueChange={(value) => setSalesEditedItem({...salesEditedItem, client_warmth: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Выберите температуру" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="горячий">Горячий</SelectItem>
-                              <SelectItem value="тёплый">Тёплый</SelectItem>
-                              <SelectItem value="холодный">Холодный</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg border-b pb-2">Оценки</h3>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          { key: 'object_score', label: 'Оценка объекта' },
-                          { key: 'construction_score', label: 'Оценка конструкций' },
-                          { key: 'timing_score', label: 'Оценка сроков' },
-                          { key: 'measurement_score', label: 'Оценка замера' },
-                          { key: 'emotion_score', label: 'Оценка эмоций' },
-                          { key: 'total_score', label: 'Общая оценка' }
-                        ].map(({ key, label }) => (
-                          <div key={key}>
-                            <label className="text-sm font-medium mb-2 block">{label}</label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={salesEditedItem[key as keyof SalesCallAnalysis] as number || ''}
-                              onChange={(e) => setSalesEditedItem({
-                                ...salesEditedItem, 
-                                [key]: e.target.value ? parseInt(e.target.value) : null
-                              })}
-                              placeholder="0-100"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  /* Sales View Mode */
-                  <>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg border-b pb-2">Информация о звонке</h3>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-2">Тип объекта</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">{selectedSalesItem.object_type || "Не указан"}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium mb-2">Длительность звонка</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">{formatDuration(selectedSalesItem.call_duration_seconds)}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">Количество конструкций</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">{selectedSalesItem.construction_count || "Не указано"}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">Когда нужны окна</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">{selectedSalesItem.window_needed_when || "Не указано"}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">Записался на замер</h4>
-                          <Badge className={selectedSalesItem.measurement_scheduled ? "bg-success/10 text-success border-success/20" : "bg-muted/10 text-muted-foreground border-muted/20"}>
-                            {selectedSalesItem.measurement_scheduled ? "Да" : "Нет"}
-                          </Badge>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">Следующий контакт</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">
-                            {selectedSalesItem.next_contact_date && selectedSalesItem.next_contact_method 
-                              ? `${selectedSalesItem.next_contact_date} (${selectedSalesItem.next_contact_method})`
-                              : "Не запланирован"}
-                          </p>
-                        </div>
-                      </div>
-
-                      {selectedSalesItem.client_requirements && (
-                        <div>
-                          <h4 className="font-medium mb-2">Требования клиента</h4>
-                          <p className="text-sm bg-muted p-3 rounded-md">{selectedSalesItem.client_requirements}</p>
-                        </div>
+              {salesEditMode ? (
+                <div className="space-y-4 mt-6">
+                  <div>
+                    <label className="text-sm font-medium">Тип объекта</label>
+                    <Input
+                      value={salesEditedItem?.object_type || ''}
+                      onChange={(e) => setSalesEditedItem(prev => prev ? { ...prev, object_type: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Количество конструкций</label>
+                    <Input
+                      value={salesEditedItem?.construction_count || ''}
+                      onChange={(e) => setSalesEditedItem(prev => prev ? { ...prev, construction_count: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Когда нужны окна</label>
+                    <Input
+                      value={salesEditedItem?.window_needed_when || ''}
+                      onChange={(e) => setSalesEditedItem(prev => prev ? { ...prev, window_needed_when: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="measurement_scheduled"
+                      checked={salesEditedItem?.measurement_scheduled || false}
+                      onCheckedChange={(checked) => setSalesEditedItem(prev => prev ? { ...prev, measurement_scheduled: checked as boolean } : null)}
+                    />
+                    <label htmlFor="measurement_scheduled" className="text-sm font-medium">
+                      Записался на замер
+                    </label>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Требования клиента</label>
+                    <Textarea
+                      value={salesEditedItem?.client_requirements || ''}
+                      onChange={(e) => setSalesEditedItem(prev => prev ? { ...prev, client_requirements: e.target.value } : null)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Эмоциональная оценка</label>
+                    <Select
+                      value={salesEditedItem?.client_emotion || ''}
+                      onValueChange={(value) => setSalesEditedItem(prev => prev ? { ...prev, client_emotion: value } : null)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="положительная">Положительная</SelectItem>
+                        <SelectItem value="нейтральная">Нейтральная</SelectItem>
+                        <SelectItem value="негативная">Негативная</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Температура клиента</label>
+                    <Select
+                      value={salesEditedItem?.client_warmth || ''}
+                      onValueChange={(value) => setSalesEditedItem(prev => prev ? { ...prev, client_warmth: value } : null)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="горячий">Горячий</SelectItem>
+                        <SelectItem value="тёплый">Тёплый</SelectItem>
+                        <SelectItem value="холодный">Холодный</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        if (salesEditedItem) {
+                          updateSalesItem(selectedSalesItem.id, {
+                            object_type: salesEditedItem.object_type,
+                            construction_count: salesEditedItem.construction_count,
+                            window_needed_when: salesEditedItem.window_needed_when,
+                            measurement_scheduled: salesEditedItem.measurement_scheduled,
+                            client_requirements: salesEditedItem.client_requirements,
+                            client_emotion: salesEditedItem.client_emotion,
+                            client_warmth: salesEditedItem.client_warmth
+                          });
+                        }
+                      }}
+                      disabled={salesUpdateLoading}
+                      className="flex-1"
+                    >
+                      {salesUpdateLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Сохранение...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Сохранить
+                        </>
                       )}
-
-                      {selectedSalesItem.client_emotion && (
-                        <div>
-                          <h4 className="font-medium mb-2">Эмоциональная оценка</h4>
-                          <Badge className={getTonalityColor(selectedSalesItem.client_emotion)}>
-                            {selectedSalesItem.client_emotion}
-                          </Badge>
-                        </div>
-                      )}
-
-                      {selectedSalesItem.client_warmth && (
-                        <div>
-                          <h4 className="font-medium mb-2">Температура клиента</h4>
-                          <Badge className={getWarmthColor(selectedSalesItem.client_warmth)}>
-                            {selectedSalesItem.client_warmth}
-                          </Badge>
-                        </div>
-                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSalesEditMode(false);
+                        setSalesEditedItem(null);
+                      }}
+                      disabled={salesUpdateLoading}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Отмена
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6 mt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Общая оценка</p>
+                      {renderStarRatingFrom100(selectedSalesItem.total_score)}
                     </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg border-b pb-2">Оценки</h3>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          { key: 'object_score', label: 'Оценка объекта' },
-                          { key: 'construction_score', label: 'Оценка конструкций' },
-                          { key: 'timing_score', label: 'Оценка сроков' },
-                          { key: 'measurement_score', label: 'Оценка замера' },
-                          { key: 'emotion_score', label: 'Оценка эмоций' },
-                          { key: 'total_score', label: 'Общая оценка' }
-                        ].map(({ key, label }) => (
-                          <div key={key}>
-                            <h4 className="font-medium mb-2">{label}</h4>
-                            <div className="bg-muted p-3 rounded-md">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">
-                                  {selectedSalesItem[key as keyof SalesCallAnalysis] as number || 0}/100
-                                </span>
-                                <Progress 
-                                  value={selectedSalesItem[key as keyof SalesCallAnalysis] as number || 0} 
-                                  className="w-20" 
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">Длительность звонка</p>
+                      <p className="text-sm">{formatDuration(selectedSalesItem.call_duration_seconds)}</p>
                     </div>
+                  </div>
 
-                    {selectedSalesItem.transcript_text && (
-                      <div className="space-y-4">
-                        <h3 className="font-semibold text-lg border-b pb-2">Транскрипция</h3>
-                        <div className="bg-muted p-4 rounded-md max-h-96 overflow-y-auto">
-                          <pre className="text-sm whitespace-pre-wrap font-mono">{selectedSalesItem.transcript_text}</pre>
-                        </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Количество конструкций</p>
+                      <p className="text-sm">{selectedSalesItem.construction_count || "Не указано"}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">Когда нужны окна</p>
+                      <p className="text-sm">{selectedSalesItem.window_needed_when || "Не указано"}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">Записался на замер</p>
+                    <Badge className={selectedSalesItem.measurement_scheduled ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>
+                      {selectedSalesItem.measurement_scheduled ? "Да" : "Нет"}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">Следующий контакт</p>
+                    <p className="text-sm">{selectedSalesItem.next_contact_date || "Не указано"}</p>
+                    <p className="text-sm text-muted-foreground">{selectedSalesItem.next_contact_method || ""}</p>
+                  </div>
+
+                  {selectedSalesItem.client_requirements && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Требования клиента</p>
+                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                        {selectedSalesItem.client_requirements}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedSalesItem.client_emotion && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Эмоциональная оценка</p>
+                        <Badge className={getTonalityColor(selectedSalesItem.client_emotion)}>
+                          {selectedSalesItem.client_emotion}
+                        </Badge>
                       </div>
                     )}
-                  </>
-                )}
-              </div>
+
+                    {selectedSalesItem.client_warmth && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Температура клиента</p>
+                        <Badge className={getWarmthColor(selectedSalesItem.client_warmth)}>
+                          {selectedSalesItem.client_warmth}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium mb-1">Балл за объект</p>
+                      <p>{selectedSalesItem.object_score || "Не оценено"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium mb-1">Балл за конструкции</p>
+                      <p>{selectedSalesItem.construction_score || "Не оценено"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium mb-1">Балл за тайминг</p>
+                      <p>{selectedSalesItem.timing_score || "Не оценено"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium mb-1">Балл за замер</p>
+                      <p>{selectedSalesItem.measurement_score || "Не оценено"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium mb-1">Эмоциональный балл</p>
+                      <p>{selectedSalesItem.emotion_score || "Не оценено"}</p>
+                    </div>
+                  </div>
+
+                  {selectedSalesItem.transcript_text && (
+                    <Collapsible open={transcriptExpanded} onOpenChange={setTranscriptExpanded}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full flex items-center justify-between">
+                          <span>Транскрипция</span>
+                          {transcriptExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <div className="bg-muted/50 p-4 rounded text-sm max-h-60 overflow-y-auto">
+                          {selectedSalesItem.transcript_text}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              )}
             </>
           )}
         </SheetContent>
