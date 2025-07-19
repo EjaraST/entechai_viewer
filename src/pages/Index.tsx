@@ -1021,7 +1021,7 @@ const Index = () => {
 
       {/* Call Center Detail Sheet */}
       <Sheet open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-[80vw] max-w-[80vw] overflow-y-auto">
           {selectedItem && (
             <>
               <SheetHeader className="space-y-3">
@@ -1213,7 +1213,7 @@ const Index = () => {
 
       {/* Sales Detail Sheet */}
       <Sheet open={!!selectedSalesItem} onOpenChange={(open) => !open && setSelectedSalesItem(null)}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-[80vw] max-w-[80vw] overflow-y-auto">
           {selectedSalesItem && (
             <>
               <SheetHeader className="space-y-3">
@@ -1502,7 +1502,7 @@ const Index = () => {
                       </CollapsibleTrigger>
                       <CollapsibleContent className="mt-3">
                         <div className="bg-muted/50 p-4 rounded text-sm max-h-60 overflow-y-auto">
-                          {selectedSalesItem.transcript_text}
+                          {selectedSalesItem.steno || 'Транскрипция недоступна'}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
