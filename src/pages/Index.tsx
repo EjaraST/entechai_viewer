@@ -720,7 +720,7 @@ const Index = () => {
             </div>
           ) : (
             /* Call Center Cards */
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredData.map((item) => (
                 <Card 
                   key={item.id} 
@@ -944,7 +944,7 @@ const Index = () => {
             </div>
           ) : (
             /* Sales Cards */
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {salesFilteredData.map((item) => (
                 <Card 
                   key={item.id} 
@@ -1021,7 +1021,7 @@ const Index = () => {
 
       {/* Call Center Detail Sheet */}
       <Sheet open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <SheetContent className="w-[80vw] max-w-[80vw] overflow-y-auto">
+        <SheetContent className="w-[80vw] max-w-none overflow-y-auto" style={{ width: '80vw' }}>
           {selectedItem && (
             <>
               <SheetHeader className="space-y-3">
@@ -1213,7 +1213,7 @@ const Index = () => {
 
       {/* Sales Detail Sheet */}
       <Sheet open={!!selectedSalesItem} onOpenChange={(open) => !open && setSelectedSalesItem(null)}>
-        <SheetContent className="w-[80vw] max-w-[80vw] overflow-y-auto">
+        <SheetContent className="w-[80vw] max-w-none overflow-y-auto" style={{ width: '80vw' }}>
           {selectedSalesItem && (
             <>
               <SheetHeader className="space-y-3">
