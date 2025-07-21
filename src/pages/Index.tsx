@@ -1220,20 +1220,20 @@ const Index = () => {
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <p className="font-medium mb-1">Оценка вежливости</p>
-                            <p>{selectedItem.politeness_score || "Не оценено"}</p>
+                            <p className="font-medium mb-1">Активное слушание</p>
+                            <p>{selectedItem.active_listening_score || "Не оценено"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Оценка профессионализма</p>
-                            <p>{selectedItem.professionalism_score || "Не оценено"}</p>
+                            <p className="font-medium mb-1">Полнота ответа</p>
+                            <p>{selectedItem.answer_completeness_score || "Не оценено"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Эмпатия</p>
-                            <p>{selectedItem.empathy_score || "Не оценено"}</p>
+                            <p className="font-medium mb-1">Общая оценка</p>
+                            <p>{selectedItem.overall_score || "Не оценено"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Решение проблемы</p>
-                            <p>{selectedItem.problem_solving_score || "Не оценено"}</p>
+                            <p className="font-medium mb-1">Цель достигнута</p>
+                            <p>{selectedItem.goal_achieved ? "Да" : "Нет"}</p>
                           </div>
                         </div>
                       </CardContent>
