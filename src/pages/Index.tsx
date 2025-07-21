@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { Search, CheckCircle, XCircle, Loader2, FileText, Target, TrendingDown, Star, Clock, ChevronDown, ChevronUp, Trash2, Edit3, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -1154,57 +1155,108 @@ const Index = () => {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6 mt-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium mb-2">Общая оценка</p>
-                      {renderStarRating(selectedItem.overall_score)}
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium mb-2">Активное слушание</p>
-                      {renderStarRating(selectedItem.active_listening_score)}
-                    </div>
-                  </div>
+                <Tabs defaultValue="overview" className="mt-6">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="overview">Обзор</TabsTrigger>
+                    <TabsTrigger value="analysis">Анализ</TabsTrigger>
+                    <TabsTrigger value="transcript">Транскрипция</TabsTrigger>
+                  </TabsList>
 
-                  {selectedItem.operator_tonality && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Тональность оператора</p>
-                      <Badge className={getTonalityColor(selectedItem.operator_tonality)}>
-                        {selectedItem.operator_tonality}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {selectedItem.final_conclusion && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Заключение</p>
-                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                        {selectedItem.final_conclusion}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedItem.transcript && (
-                    <Collapsible open={transcriptExpanded} onOpenChange={setTranscriptExpanded}>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" className="w-full flex items-center justify-between">
-                          <span>Транскрипция</span>
-                          {transcriptExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-3">
-                        <div className="bg-muted/50 p-4 rounded text-sm max-h-60 overflow-y-auto">
-                          {selectedItem.transcript}
+                  <TabsContent value="overview" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Основные показатели</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium mb-2">Общая оценка</p>
+                            {renderStarRating(selectedItem.overall_score)}
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm font-medium mb-2">Активное слушание</p>
+                            {renderStarRating(selectedItem.active_listening_score)}
+                          </div>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  )}
-                </div>
+
+                        {selectedItem.operator_tonality && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Тональность оператора</p>
+                            <Badge className={getTonalityColor(selectedItem.operator_tonality)}>
+                              {selectedItem.operator_tonality}
+                            </Badge>
+                          </div>
+                        )}
+
+                        {selectedItem.client_nps_category && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Категория NPS</p>
+                            <Badge className={getNpsColor(selectedItem.client_nps_category)}>
+                              {selectedItem.client_nps_category}
+                            </Badge>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="analysis" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Детальный анализ</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {selectedItem.final_conclusion && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Заключение</p>
+                            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                              {selectedItem.final_conclusion}
+                            </p>
+                          </div>
+                        )}
+
+                        <Separator />
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="font-medium mb-1">Оценка вежливости</p>
+                            <p>{selectedItem.politeness_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Оценка профессионализма</p>
+                            <p>{selectedItem.professionalism_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Эмпатия</p>
+                            <p>{selectedItem.empathy_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Решение проблемы</p>
+                            <p>{selectedItem.problem_solving_score || "Не оценено"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="transcript" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Транскрипция разговора</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {selectedItem.transcript ? (
+                          <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
+                            {selectedItem.transcript}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">Транскрипция недоступна</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               )}
             </>
           )}
@@ -1398,116 +1450,141 @@ const Index = () => {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6 mt-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium mb-2">Общая оценка</p>
-                      {renderStarRatingFrom100(selectedSalesItem.total_score)}
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium mb-2">Длительность звонка</p>
-                      <p className="text-sm">{formatDuration(selectedSalesItem.call_duration_seconds)}</p>
-                    </div>
-                  </div>
+                <Tabs defaultValue="overview" className="mt-6">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="overview">Обзор</TabsTrigger>
+                    <TabsTrigger value="analysis">Анализ</TabsTrigger>
+                    <TabsTrigger value="transcript">Транскрипция</TabsTrigger>
+                  </TabsList>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium mb-2">Количество конструкций</p>
-                      <p className="text-sm">{selectedSalesItem.construction_count || "Не указано"}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium mb-2">Когда нужны окна</p>
-                      <p className="text-sm">{selectedSalesItem.window_needed_when || "Не указано"}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">Записался на замер</p>
-                    <Badge className={selectedSalesItem.measurement_scheduled ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>
-                      {selectedSalesItem.measurement_scheduled ? "Да" : "Нет"}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">Следующий контакт</p>
-                    <p className="text-sm">{selectedSalesItem.next_contact_date || "Не указано"}</p>
-                    <p className="text-sm text-muted-foreground">{selectedSalesItem.next_contact_method || ""}</p>
-                  </div>
-
-                  {selectedSalesItem.client_requirements && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Требования клиента</p>
-                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                        {selectedSalesItem.client_requirements}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedSalesItem.client_emotion && (
-                      <div>
-                        <p className="text-sm font-medium mb-2">Эмоциональная оценка</p>
-                        <Badge className={getTonalityColor(selectedSalesItem.client_emotion)}>
-                          {selectedSalesItem.client_emotion}
-                        </Badge>
-                      </div>
-                    )}
-
-                    {selectedSalesItem.client_warmth && (
-                      <div>
-                        <p className="text-sm font-medium mb-2">Температура клиента</p>
-                        <Badge className={getWarmthColor(selectedSalesItem.client_warmth)}>
-                          {selectedSalesItem.client_warmth}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium mb-1">Балл за объект</p>
-                      <p>{selectedSalesItem.object_score || "Не оценено"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium mb-1">Балл за конструкции</p>
-                      <p>{selectedSalesItem.construction_score || "Не оценено"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium mb-1">Балл за тайминг</p>
-                      <p>{selectedSalesItem.timing_score || "Не оценено"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium mb-1">Балл за замер</p>
-                      <p>{selectedSalesItem.measurement_score || "Не оценено"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium mb-1">Эмоциональный балл</p>
-                      <p>{selectedSalesItem.emotion_score || "Не оценено"}</p>
-                    </div>
-                  </div>
-
-                  {selectedSalesItem.transcript_text && (
-                    <Collapsible open={transcriptExpanded} onOpenChange={setTranscriptExpanded}>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" className="w-full flex items-center justify-between">
-                          <span>Транскрипция</span>
-                          {transcriptExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-3">
-                        <div className="bg-muted/50 p-4 rounded text-sm max-h-60 overflow-y-auto">
-                          {selectedSalesItem.steno || 'Транскрипция недоступна'}
+                  <TabsContent value="overview" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Основные показатели</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium mb-2">Общая оценка</p>
+                            {renderStarRatingFrom100(selectedSalesItem.total_score)}
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm font-medium mb-2">Длительность звонка</p>
+                            <p className="text-sm">{formatDuration(selectedSalesItem.call_duration_seconds)}</p>
+                          </div>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  )}
-                </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium mb-2">Количество конструкций</p>
+                            <p className="text-sm">{selectedSalesItem.construction_count || "Не указано"}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm font-medium mb-2">Когда нужны окна</p>
+                            <p className="text-sm">{selectedSalesItem.window_needed_when || "Не указано"}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-medium mb-2">Записался на замер</p>
+                          <Badge className={selectedSalesItem.measurement_scheduled ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}>
+                            {selectedSalesItem.measurement_scheduled ? "Да" : "Нет"}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          {selectedSalesItem.client_emotion && (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Эмоциональная оценка</p>
+                              <Badge className={getTonalityColor(selectedSalesItem.client_emotion)}>
+                                {selectedSalesItem.client_emotion}
+                              </Badge>
+                            </div>
+                          )}
+
+                          {selectedSalesItem.client_warmth && (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Температура клиента</p>
+                              <Badge className={getWarmthColor(selectedSalesItem.client_warmth)}>
+                                {selectedSalesItem.client_warmth}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="analysis" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Детальный анализ</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {selectedSalesItem.client_requirements && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Требования клиента</p>
+                            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                              {selectedSalesItem.client_requirements}
+                            </p>
+                          </div>
+                        )}
+
+                        <Separator />
+
+                        <div>
+                          <p className="text-sm font-medium mb-2">Следующий контакт</p>
+                          <p className="text-sm">{selectedSalesItem.next_contact_date || "Не указано"}</p>
+                          <p className="text-sm text-muted-foreground">{selectedSalesItem.next_contact_method || ""}</p>
+                        </div>
+
+                        <Separator />
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="font-medium mb-1">Балл за объект</p>
+                            <p>{selectedSalesItem.object_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Балл за конструкции</p>
+                            <p>{selectedSalesItem.construction_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Балл за тайминг</p>
+                            <p>{selectedSalesItem.timing_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Балл за замер</p>
+                            <p>{selectedSalesItem.measurement_score || "Не оценено"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Эмоциональный балл</p>
+                            <p>{selectedSalesItem.emotion_score || "Не оценено"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="transcript" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Транскрипция разговора</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {selectedSalesItem.steno ? (
+                          <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
+                            {selectedSalesItem.steno}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">Транскрипция недоступна</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               )}
             </>
           )}
