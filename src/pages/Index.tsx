@@ -16,6 +16,7 @@ import { Search, CheckCircle, XCircle, Loader2, FileText, Target, TrendingDown, 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
+import TranscriptDisplay from "@/components/TranscriptDisplay";
 
 type CallAnalysis = Tables<'call_analysis'>;
 type SalesCallAnalysis = any; // Используем any для sales_calls_analysis до обновления типов
@@ -1246,13 +1247,7 @@ const Index = () => {
                         <CardTitle className="text-lg">Транскрипция разговора</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {selectedItem.transcript ? (
-                          <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
-                            {selectedItem.transcript}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground">Транскрипция недоступна</p>
-                        )}
+                        <TranscriptDisplay transcript={selectedItem.transcript} />
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -1574,13 +1569,7 @@ const Index = () => {
                         <CardTitle className="text-lg">Транскрипция разговора</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {selectedSalesItem.steno ? (
-                          <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
-                            {selectedSalesItem.steno}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground">Транскрипция недоступна</p>
-                        )}
+                        <TranscriptDisplay transcript={selectedSalesItem.steno} />
                       </CardContent>
                     </Card>
                   </TabsContent>
