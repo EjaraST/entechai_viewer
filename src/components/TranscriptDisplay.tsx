@@ -23,15 +23,20 @@ const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({ transcript }) => 
 
     for (const line of lines) {
       // Match pattern: "1. Оператор: текст" or "2. Клиент: текст"
-      const match = line.match(/^(\d+)\.\s*(Оператор|Клиент):\s*(.+)$/);
+      // Also handle cases where there might be extra spaces or variations
+      const match = line.match(/^(\d+)\.\s*(Оператор|Клиент):\s*(.*)$/);
       if (match) {
-        parsed.push({
-          number: match[1],
-          role: match[2] as 'Оператор' | 'Клиент',
-          text: match[3].trim()
-        });
-      } else if (line.trim()) {
-        // If line doesn't match pattern but has content, add to last entry if exists
+        const text = match[3].trim();
+        if (text) { // Only add if there's actual text content
+          parsed.push({
+            number: match[1],
+            role: match[2] as 'Оператор' | 'Клиент',
+            text: text
+          });
+        }
+      } else if (line.trim() && !line.match(/^\d+\.\s*(Оператор|Клиент):\s*$/)) {
+        // If line doesn't match pattern but has content and is not an empty role line, 
+        // add to last entry if exists
         if (parsed.length > 0) {
           parsed[parsed.length - 1].text += ' ' + line.trim();
         }
