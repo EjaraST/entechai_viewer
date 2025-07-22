@@ -48,9 +48,14 @@ const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({ transcript }) => 
 
   const transcriptLines = parseTranscript(transcript);
 
+  // Debug logging
+  console.log('Original transcript:', transcript);
+  console.log('Parsed lines:', transcriptLines);
+
   if (transcriptLines.length === 0) {
     return (
       <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
+        <div className="mb-2 text-xs text-muted-foreground">Raw transcript:</div>
         {transcript}
       </div>
     );
