@@ -48,14 +48,9 @@ const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({ transcript }) => 
 
   const transcriptLines = parseTranscript(transcript);
 
-  // Debug logging
-  console.log('Original transcript:', transcript);
-  console.log('Parsed lines:', transcriptLines);
-
   if (transcriptLines.length === 0) {
     return (
       <div className="bg-muted/50 p-4 rounded text-sm max-h-96 overflow-y-auto">
-        <div className="mb-2 text-xs text-muted-foreground">Raw transcript:</div>
         {transcript}
       </div>
     );
@@ -82,8 +77,8 @@ const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({ transcript }) => 
           <div
             className={`max-w-[75%] rounded-2xl px-4 py-3 ${
               line.role === 'Оператор'
-                ? 'bg-primary/5 border border-primary/20 text-primary-foreground'
-                : 'bg-secondary/10 border border-secondary/20 text-secondary-foreground'
+                ? 'bg-blue-50 border border-blue-200 text-blue-900'
+                : 'bg-green-50 border border-green-200 text-green-900'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
